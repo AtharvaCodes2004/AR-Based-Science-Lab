@@ -73,13 +73,35 @@ function loadModel(type) {
   model.removeAttribute("gltf-model");
 
   if (type === "heart") {
-    model.innerHTML = `
-      <a-sphere position="-0.25 0.2 0" radius="0.15" color="pink"></a-sphere>
-      <a-sphere position="0.25 0.2 0" radius="0.15" color="lightcoral"></a-sphere>
-      <a-sphere position="-0.25 -0.2 0" radius="0.2" color="red"></a-sphere>
-      <a-sphere position="0.25 -0.2 0" radius="0.2" color="darkred"></a-sphere>
-    `;
-  }
+
+  model.innerHTML = `
+    <!-- Left Atrium -->
+    <a-ellipsoid position="-0.2 0.25 0" radius="0.18 0.12 0.12" color="#ff6b6b"></a-ellipsoid>
+
+    <!-- Right Atrium -->
+    <a-ellipsoid position="0.2 0.25 0" radius="0.18 0.12 0.12" color="#ff8787"></a-ellipsoid>
+
+    <!-- Left Ventricle -->
+    <a-ellipsoid position="-0.2 -0.15 0" radius="0.22 0.25 0.15" color="#e03131"></a-ellipsoid>
+
+    <!-- Right Ventricle -->
+    <a-ellipsoid position="0.2 -0.15 0" radius="0.22 0.25 0.15" color="#c92a2a"></a-ellipsoid>
+
+    <!-- Center divider -->
+    <a-box position="0 0 0.05" depth="0.05" height="0.7" width="0.05" color="white"></a-box>
+
+    <!-- Labels -->
+    <a-text value="Heart"
+            position="0 0.7 0"
+            align="center"
+            color="white">
+    </a-text>
+  `;
+
+  // ❤️ Beating effect
+  model.setAttribute("animation",
+    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.7 0.7 0.7`);
+}
 
   if (type === "solar") {
     model.innerHTML = `
