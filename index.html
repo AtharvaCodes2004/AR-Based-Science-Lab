@@ -142,7 +142,9 @@ function toggleCircuit() {
     bulb.setAttribute("color", circuitOn ? "yellow" : "gray");
   }
 }
-
+window.onload = () => {
+  loadModel('heart');
+};
 </script>
 
 </body>
