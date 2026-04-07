@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AR Science Lab</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+
+  <!-- AR.js -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <!-- Gesture -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-detector/dist/aframe-gesture-detector.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-handler/dist/aframe-gesture-handler.min.js"></script>
+</head>
+
+<body style="margin:0; overflow:hidden;">
+
+<!-- 🔘 UI Buttons -->
+<div style="position:absolute; top:10px; width:100%; text-align:center; z-index:10;">
+  <button onclick="loadModel('heart')">❤️ Heart</button>
+  <button onclick="loadModel('solar')">🌍 Solar</button>
+  <button onclick="loadModel('circuit')">⚡ Circuit</button>
+  <br><br>
+  <button onclick="increaseHeartRate()">❤️ Faster</button>
+  <button onclick="toggleCircuit()">⚡ Switch</button>
+</div>
+
+<!-- 🧠 AR Scene -->
+<a-scene 
+  embedded 
+  arjs="sourceType: webcam;"
+  gesture-detector
+>
+
+  <a-marker preset="hiro">
+
+    <!-- Main Model -->
+    <a-entity
+      id="model"
+      position="0 0 0"
+      scale="0.5 0.5 0.5"
+      gesture-handler
+    >
+    </a-entity>
+
+  </a-marker>
+
+  <a-entity camera></a-entity>
+
+</a-scene>
+
+<!-- ⚙️ JavaScript -->
+<script>
+
+let heartSpeed = 800;
+let circuitOn = false;
+
+function loadModel(type) {
+  const model = document.getElementById("model");
+
+  // Clear old model
+  model.innerHTML = "";
+  model.removeAttribute("gltf-model");
+
+  if (type === "heart") {
+
+  model.innerHTML = `
+    <!-- Left chamber -->
+    <a-sphere position="-0.3 0 0" radius="0.25" color="red"></a-sphere>
+
+    <!-- Right chamber -->
+    <a-sphere position="0.3 0 0" radius="0.25" color="darkred"></a-sphere>
+
+    <!-- Label -->
+    <a-text value="Heart"
+            position="0 0.6 0"
+            align="center"
+            color="white">
+    </a-text>
+  `;
+
+  model.setAttribute("animation",
+    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.6 0.6 0.6`);
+}
+  if (type === "solar") {
+
+  model.innerHTML = `
+    <!-- Sun -->
+    <a-sphere color="yellow" radius="0.3"></a-sphere>
+
+    <!-- Orbit -->
+    <a-ring radius-inner="0.95" radius-outer="1" color="white" rotation="90 0 0"></a-ring>
+
+    <!-- Earth -->
+    <a-entity animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
+      <a-sphere position="1 0 0" radius="0.1" color="blue"></a-sphere>
+    </a-entity>
+  `;
+}
+
+  if (type === "circuit") {
+
+  model.innerHTML = `
+    <!-- Battery -->
+    <a-box position="-0.8 0 0" depth="0.1" height="0.4" width="0.2" color="green"></a-box>
+
+    <!-- Wire (left to bulb) -->
+    <a-box position="-0.3 0 0" depth="0.05" height="0.05" width="1" color="white"></a-box>
+
+    <!-- Bulb -->
+    <a-sphere id="bulb" position="0.5 0 0" radius="0.15" color="gray"></a-sphere>
+
+    <!-- Label -->
+    <a-text value="Simple Circuit"
+            position="0 0.6 0"
+            align="center"
+            color="white">
+    </a-text>
+  `;
+}
+}
+
+// ❤️ Heart control
+function increaseHeartRate() {
+  heartSpeed -= 100;
+  if (heartSpeed < 200) heartSpeed = 200;
+
+  const model = document.getElementById("model");
+
+  model.setAttribute("animation",
+    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.7 0.7 0.7`);
+}
+
+// ⚡ Circuit control
+function toggleCircuit() {
+  circuitOn = !circuitOn;
+
+  const bulb = document.querySelector("#bulb");
+
+  if (bulb) {
+    bulb.setAttribute("color", circuitOn ? "yellow" : "gray");
+  }
+}
+
+</script>
+
+</body>
+</html>
