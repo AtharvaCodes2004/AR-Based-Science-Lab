@@ -56,95 +56,60 @@
 let heartSpeed = 800;
 let circuitOn = false;
 
+// ✅ Wait until page fully loads
+window.addEventListener("DOMContentLoaded", () => {
+  loadModel("heart"); // load default model
+});
+
 function loadModel(type) {
   const model = document.getElementById("model");
 
-  // Clear old model
+  if (!model) {
+    console.log("Model not found yet");
+    return;
+  }
+
   model.innerHTML = "";
   model.removeAttribute("gltf-model");
 
   if (type === "heart") {
+    model.innerHTML = `
+      <a-sphere position="-0.25 0.2 0" radius="0.15" color="pink"></a-sphere>
+      <a-sphere position="0.25 0.2 0" radius="0.15" color="lightcoral"></a-sphere>
+      <a-sphere position="-0.25 -0.2 0" radius="0.2" color="red"></a-sphere>
+      <a-sphere position="0.25 -0.2 0" radius="0.2" color="darkred"></a-sphere>
+    `;
+  }
 
-  model.innerHTML = `
-    <!-- Left chamber -->
-    <a-sphere position="-0.3 0 0" radius="0.25" color="red"></a-sphere>
-
-    <!-- Right chamber -->
-    <a-sphere position="0.3 0 0" radius="0.25" color="darkred"></a-sphere>
-
-    <!-- Label -->
-    <a-text value="Heart"
-            position="0 0.6 0"
-            align="center"
-            color="white">
-    </a-text>
-  `;
-
-  model.setAttribute("animation",
-    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.6 0.6 0.6`);
-}
   if (type === "solar") {
-
-  model.innerHTML = `
-    <!-- Sun -->
-    <a-sphere color="yellow" radius="0.3"></a-sphere>
-
-    <!-- Orbit -->
-    <a-ring radius-inner="0.95" radius-outer="1" color="white" rotation="90 0 0"></a-ring>
-
-    <!-- Earth -->
-    <a-entity animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
-      <a-sphere position="1 0 0" radius="0.1" color="blue"></a-sphere>
-    </a-entity>
-  `;
-}
+    model.innerHTML = `
+      <a-sphere color="yellow" radius="0.3"></a-sphere>
+      <a-entity animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
+        <a-sphere position="1 0 0" radius="0.1" color="blue"></a-sphere>
+      </a-entity>
+    `;
+  }
 
   if (type === "circuit") {
-
-  model.innerHTML = `
-    <!-- Battery -->
-    <a-box position="-0.8 0 0" depth="0.1" height="0.4" width="0.2" color="green"></a-box>
-
-    <!-- Wire (left to bulb) -->
-    <a-box position="-0.3 0 0" depth="0.05" height="0.05" width="1" color="white"></a-box>
-
-    <!-- Bulb -->
-    <a-sphere id="bulb" position="0.5 0 0" radius="0.15" color="gray"></a-sphere>
-
-    <!-- Label -->
-    <a-text value="Simple Circuit"
-            position="0 0.6 0"
-            align="center"
-            color="white">
-    </a-text>
-  `;
-}
+    model.innerHTML = `
+      <a-sphere id="bulb" position="0 0 0" radius="0.2" color="gray"></a-sphere>
+    `;
+  }
 }
 
-// ❤️ Heart control
 function increaseHeartRate() {
   heartSpeed -= 100;
   if (heartSpeed < 200) heartSpeed = 200;
-
-  const model = document.getElementById("model");
-
-  model.setAttribute("animation",
-    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.7 0.7 0.7`);
 }
 
-// ⚡ Circuit control
 function toggleCircuit() {
   circuitOn = !circuitOn;
-
   const bulb = document.querySelector("#bulb");
-
   if (bulb) {
     bulb.setAttribute("color", circuitOn ? "yellow" : "gray");
   }
 }
-window.onload = () => {
-  loadModel('heart');
-};
+
 </script>
 
 </body>
