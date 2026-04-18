@@ -1,0 +1,63 @@
+body {
+  text-align: center;
+  font-family: Arial;
+  background: black;
+  color: white;
+}
+
+video {
+  width: 100%;
+  height: auto;
+}
+
+.controls {
+  margin: 10px;
+}
+
+button {
+  padding: 10px;
+  margin: 5px;
+  background: cyan;
+  border: none;
+  border-radius: 5px;
+}
+
+#overlay {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Solar */
+.planet {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  position: absolute;
+}
+
+/* Heart */
+#heart {
+  width: 100px;
+  height: 100px;
+  background: red;
+  transform: rotate(45deg);
+  margin: auto;
+  animation: beat 1s infinite;
+}
+
+@keyframes beat {
+  0% { transform: scale(1) rotate(45deg); }
+  50% { transform: scale(1.2) rotate(45deg); }
+  100% { transform: scale(1) rotate(45deg); }
+}
+
+/* Circuit */
+#bulb {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: gray;
+  margin: auto;
+}

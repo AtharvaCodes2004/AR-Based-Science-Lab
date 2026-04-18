@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AR Science Lab</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+
+  <!-- AR.js -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <!-- Gesture -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-detector/dist/aframe-gesture-detector.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-handler/dist/aframe-gesture-handler.min.js"></script>
+</head>
+
+<body style="margin:0; overflow:hidden;">
+
+<!-- 🔘 UI Buttons -->
+<div style="position:absolute; top:10px; width:100%; text-align:center; z-index:10;">
+  <button onclick="loadModel('heart')">❤️ Heart</button>
+  <button onclick="loadModel('solar')">🌍 Solar</button>
+  <button onclick="loadModel('circuit')">⚡ Circuit</button>
+  <br><br>
+  <button onclick="increaseHeartRate()">❤️ Faster</button>
+  <button onclick="toggleCircuit()">⚡ Switch</button>
+</div>
+
+<!-- 🧠 AR Scene -->
+<a-scene 
+  embedded 
+  arjs="sourceType: webcam;"
+  gesture-detector
+>
+
+  <a-marker preset="hiro">
+
+    <!-- Main Model -->
+    <a-entity
+      id="model"
+      position="0 0 0"
+      scale="0.5 0.5 0.5"
+      gesture-handler
+    >
+    </a-entity>
+
+  </a-marker>
+
+  <a-entity camera></a-entity>
+
+</a-scene>
+
+<!-- ⚙️ JavaScript -->
+<script>
+
+let heartSpeed = 800;
+let circuitOn = false;
+
+// ✅ Wait until page fully loads
+window.addEventListener("DOMContentLoaded", () => {
+  loadModel("heart"); // load default model
+});
+
+function loadModel(type) {
+  const model = document.getElementById("model");
+
+  if (!model) {
+    console.log("Model not found yet");
+    return;
+  }
+
+  model.innerHTML = "";
+  model.removeAttribute("gltf-model");
+
+  if (type === "heart") {
+
+  model.innerHTML = `
+    <!-- Left Atrium -->
+    <a-ellipsoid position="-0.2 0.25 0" radius="0.18 0.12 0.12" color="#ff6b6b"></a-ellipsoid>
+
+    <!-- Right Atrium -->
+    <a-ellipsoid position="0.2 0.25 0" radius="0.18 0.12 0.12" color="#ff8787"></a-ellipsoid>
+
+    <!-- Left Ventricle -->
+    <a-ellipsoid position="-0.2 -0.15 0" radius="0.22 0.25 0.15" color="#e03131"></a-ellipsoid>
+
+    <!-- Right Ventricle -->
+    <a-ellipsoid position="0.2 -0.15 0" radius="0.22 0.25 0.15" color="#c92a2a"></a-ellipsoid>
+
+    <!-- Center divider -->
+    <a-box position="0 0 0.05" depth="0.05" height="0.7" width="0.05" color="white"></a-box>
+
+    <!-- Labels -->
+    <a-text value="Heart"
+            position="0 0.7 0"
+            align="center"
+            color="white">
+    </a-text>
+  `;
+
+  // ❤️ Beating effect
+  model.setAttribute("animation",
+    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.7 0.7 0.7`);
+}
+
+  if (type === "solar") {
+    model.innerHTML = `
+      <a-sphere color="yellow" radius="0.3"></a-sphere>
+      <a-entity animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
+        <a-sphere position="1 0 0" radius="0.1" color="blue"></a-sphere>
+      </a-entity>
+    `;
+  }
+
+  if (type === "circuit") {
+    model.innerHTML = `
+      <a-sphere id="bulb" position="0 0 0" radius="0.2" color="gray"></a-sphere>
+    `;
+  }
+}
+
+function increaseHeartRate() {
+  heartSpeed -= 100;
+  if (heartSpeed < 200) heartSpeed = 200;
+}
+
+function toggleCircuit() {
+  circuitOn = !circuitOn;
+  const bulb = document.querySelector("#bulb");
+  if (bulb) {
+    bulb.setAttribute("color", circuitOn ? "yellow" : "gray");
+  }
+}
+
+</script>
+
+</body>
+</html>
