@@ -1,138 +1,365 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>AR Science Lab</title>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
+    <style>
+      video {
+      top: 0;
+      left: 0;
+      z-index: -1;
+      }
+    </style>
+    <title>AR Science Lab</title>
 
-  <!-- A-Frame -->
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  </head>
 
-  <!-- AR.js -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-
-  <!-- Gesture -->
-  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-detector/dist/aframe-gesture-detector.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-handler/dist/aframe-gesture-handler.min.js"></script>
-</head>
-
-<body style="margin:0; overflow:hidden;">
-
-<!-- 🔘 UI Buttons -->
-<div style="position:absolute; top:10px; width:100%; text-align:center; z-index:10;">
-  <button onclick="loadModel('heart')">❤️ Heart</button>
-  <button onclick="loadModel('solar')">🌍 Solar</button>
-  <button onclick="loadModel('circuit')">⚡ Circuit</button>
-  <br><br>
-  <button onclick="increaseHeartRate()">❤️ Faster</button>
-  <button onclick="toggleCircuit()">⚡ Switch</button>
-</div>
-
-<!-- 🧠 AR Scene -->
-<a-scene 
-  embedded 
-  arjs="sourceType: webcam;"
-  gesture-detector
->
-
-  <a-marker preset="hiro">
-
-    <!-- Main Model -->
-    <a-entity
-      id="model"
-      position="0 0 0"
-      scale="0.5 0.5 0.5"
-      gesture-handler
+  <body style="margin: 0; overflow: hidden">
+    <!-- 🔘 UI Buttons -->
+    <div
+      style="
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        text-align: center;
+        z-index: 10;
+      "
+      id="ui"
     >
-    </a-entity>
+      <button onclick="enterAR()">🚀 Enter AR</button>
+      <br /><br />
+      <button onclick="loadModel('heart')">❤️ Heart</button>
+      <button onclick="loadModel('solar')">🌍 Solar</button>
+      <button onclick="loadModel('circuit')">⚡ Circuit</button>
+      <br /><br />
+      <button onclick="increaseRate()">❤️ Faster</button>
+      <button onclick="toggleCircuit()">⚡ Switch</button>
+      <button onclick="toggleOrbits()">⏸️ Pause Orbits</button>
+      <br /><br />
+      Brightness: <input type="range" id="brightness" min="0" max="1" step="0.1" value="1" oninput="setBrightness(this.value)">
+    </div>
 
-  </a-marker>
+    <!-- 🧠 3D Scene -->
+    <a-scene shadow="type: pcfsoft">
 
-  <a-entity camera></a-entity>
+  <!-- Camera -->
+  <a-camera position="0 1.6 4"></a-camera>
+
+  <!-- Strong lighting -->
+  <a-light type="ambient" intensity="0.6"></a-light>
+  <a-light type="directional" position="0 2 1" intensity="1.5" castShadow="true" shadow-camera-far="50" shadow-map-size="2048"></a-light>
+
+  <!-- Your model -->
+  <a-entity
+    id="model"
+    position="0 1 0"
+    scale="1.5 1.5 1.5"
+    rotation="0 0 0">
+  </a-entity>
+
+  <!-- Ground for shadows -->
+  <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#333" shadow="receive: true"></a-plane>
+
+  <!-- Background -->
+  <a-sky color="#87CEEB"></a-sky>
 
 </a-scene>
 
-<!-- ⚙️ JavaScript -->
-<script>
+    <!-- ⚙️ JavaScript -->
+   <script>
 
 let heartSpeed = 800;
 let circuitOn = false;
+let brightness = 1;
+let orbiting = true;
 
-// ✅ Wait until page fully loads
-window.addEventListener("DOMContentLoaded", () => {
-  loadModel("heart"); // load default model
-});
+// Load default model
+window.onload = function () {
+  setTimeout(() => {
+    loadModel("heart");
+  }, 500);
+};
 
-function loadModel(type) {
+// ✅ MAIN FUNCTION (FULLY CORRECT)
+window.loadModel = function(type) {
+
+  console.log("Model loading:", type);
+
   const model = document.getElementById("model");
 
   if (!model) {
-    console.log("Model not found yet");
+    alert("Model not found!");
     return;
   }
 
-  model.innerHTML = "";
+  // RESET
+  while (model.firstChild) {
+    model.removeChild(model.firstChild);
+  }
   model.removeAttribute("gltf-model");
+  model.removeAttribute("animation");
 
+  // ❤️ HEART
   if (type === "heart") {
+    // Main heart body
+    const heartBody = document.createElement('a-sphere');
+    heartBody.setAttribute('position', '0 -0.1 0');
+    heartBody.setAttribute('radius', '0.3');
+    heartBody.setAttribute('scale', '1 1.2 0.8');
+    heartBody.setAttribute('material', 'color: #ff6b6b; emissive: #ff6b6b; emissiveIntensity: 0.1; metalness: 0; roughness: 0.8');
+    heartBody.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(heartBody);
 
-  model.innerHTML = `
-    <!-- Left Atrium -->
-    <a-ellipsoid position="-0.2 0.25 0" radius="0.18 0.12 0.12" color="#ff6b6b"></a-ellipsoid>
+    // Left atrium
+    const leftAtrium = document.createElement('a-sphere');
+    leftAtrium.setAttribute('position', '-0.2 0.2 0');
+    leftAtrium.setAttribute('radius', '0.15');
+    leftAtrium.setAttribute('material', 'color: #ff8787; emissive: #ff8787; emissiveIntensity: 0.1; metalness: 0; roughness: 0.8');
+    leftAtrium.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(leftAtrium);
 
-    <!-- Right Atrium -->
-    <a-ellipsoid position="0.2 0.25 0" radius="0.18 0.12 0.12" color="#ff8787"></a-ellipsoid>
+    // Right atrium
+    const rightAtrium = document.createElement('a-sphere');
+    rightAtrium.setAttribute('position', '0.2 0.2 0');
+    rightAtrium.setAttribute('radius', '0.15');
+    rightAtrium.setAttribute('material', 'color: #ff8787; emissive: #ff8787; emissiveIntensity: 0.1; metalness: 0; roughness: 0.8');
+    rightAtrium.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(rightAtrium);
 
-    <!-- Left Ventricle -->
-    <a-ellipsoid position="-0.2 -0.15 0" radius="0.22 0.25 0.15" color="#e03131"></a-ellipsoid>
+    // Aorta
+    const aorta = document.createElement('a-cylinder');
+    aorta.setAttribute('position', '0 0.4 0');
+    aorta.setAttribute('radius', '0.05');
+    aorta.setAttribute('height', '0.3');
+    aorta.setAttribute('material', 'color: #c92a2a; emissive: #c92a2a; emissiveIntensity: 0.1; metalness: 0; roughness: 0.8');
+    aorta.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(aorta);
 
-    <!-- Right Ventricle -->
-    <a-ellipsoid position="0.2 -0.15 0" radius="0.22 0.25 0.15" color="#c92a2a"></a-ellipsoid>
+    // Pulsing animation
+    model.setAttribute('animation', 'property: scale; dir: alternate; dur: 1000; loop: true; to: 1.05 1.05 1.05');
 
-    <!-- Center divider -->
-    <a-box position="0 0 0.05" depth="0.05" height="0.7" width="0.05" color="white"></a-box>
+    const text = document.createElement('a-text');
+    text.setAttribute('value', 'Anatomical Heart');
+    text.setAttribute('position', '0 0.9 0');
+    text.setAttribute('align', 'center');
+    text.setAttribute('color', 'white');
+    model.appendChild(text);
+  }
 
-    <!-- Labels -->
-    <a-text value="Heart"
-            position="0 0.7 0"
-            align="center"
-            color="white">
-    </a-text>
-  `;
-
-  // ❤️ Beating effect
-  model.setAttribute("animation",
-    `property: scale; dir: alternate; dur: ${heartSpeed}; loop: true; to: 0.7 0.7 0.7`);
-}
-
+  // 🌍 SOLAR
   if (type === "solar") {
-    model.innerHTML = `
-      <a-sphere color="yellow" radius="0.3"></a-sphere>
-      <a-entity animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
-        <a-sphere position="1 0 0" radius="0.1" color="blue"></a-sphere>
-      </a-entity>
-    `;
+    window.planetEntities = [];
+
+    const solarRoot = document.createElement('a-entity');
+    solarRoot.setAttribute('position', '0 1.2 0');
+    solarRoot.setAttribute('scale', '0.8 0.8 0.8');
+    model.appendChild(solarRoot);
+
+    // Sun - Perfect glowing sphere
+    const sun = document.createElement('a-sphere');
+    sun.setAttribute('scale', '1 1 1');
+    sun.setAttribute('radius', '2');
+    sun.setAttribute('position', '0 0 0');
+    sun.setAttribute('material', 'color: #FDB813; emissive: #FDB813; emissiveIntensity: 0.8; flatShading: false; side: front; transparent: false');
+    sun.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
+    solarRoot.appendChild(sun);
+
+    // Add a glow effect around the sun
+    const sunGlow = document.createElement('a-sphere');
+    sunGlow.setAttribute('scale', '1.1 1.1 1.1');
+    sunGlow.setAttribute('radius', '0.3');
+    sunGlow.setAttribute('position', '0 0 0');
+    sunGlow.setAttribute('material', 'color: #ffff00; opacity: 0.15; transparent: true; emissive: #ffff00; emissiveIntensity: 0.4; side: back');
+    sunGlow.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 15000');
+    solarRoot.appendChild(sunGlow);
+
+    // Planets data
+    const planets = [
+      { name: 'Mercury', dist: 0.6, radius: 0.08, texture: 'https://www.solarsystemscope.com/textures/download/2k_mercury.jpg', color: '#8C7853', dur: 1500 },
+      { name: 'Venus', dist: 0.9, radius: 0.12, texture: 'https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg', color: '#FFC649', dur: 2000 },
+      { name: 'Earth', dist: 1.2, radius: 0.14, texture: 'https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg', color: '#6B93D6', dur: 6000 },
+      { name: 'Mars', dist: 1.6, radius: 0.11, texture: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg', color: '#C1440E', dur: 8000 },
+      { name: 'Jupiter', dist: 2.1, radius: 0.2, texture: 'https://www.solarsystemscope.com/textures/download/2k_jupiter.jpg', color: '#D8CA9D', dur: 12000 },
+      { name: 'Saturn', dist: 2.8, radius: 0.18, texture: 'https://www.solarsystemscope.com/textures/download/2k_saturn.jpg', color: '#FAD5A5', dur: 15000 },
+      { name: 'Uranus', dist: 3.5, radius: 0.12, texture: 'https://www.solarsystemscope.com/textures/download/2k_uranus.jpg', color: '#4FD0E7', dur: 20000 },
+      { name: 'Neptune', dist: 4.2, radius: 0.12, texture: 'https://www.solarsystemscope.com/textures/download/2k_neptune.jpg', color: '#4B70DD', dur: 25000 }
+    ];
+
+    planets.forEach(planet => {
+      const planetEntity = document.createElement('a-entity');
+      planetEntity.setAttribute('animation', orbiting ? `property: rotation; to: 0 360 0; loop: true; dur: ${planet.dur}` : '');
+
+      const sphere = document.createElement('a-sphere');
+      sphere.setAttribute('position', `${planet.dist} 0 0`);
+      sphere.setAttribute('radius', planet.radius);
+      sphere.setAttribute('material', `src: ${planet.texture}; color: ${planet.color}`);
+      sphere.setAttribute('shadow', 'cast: true; receive: true');
+      if (planet.name === 'Earth') {
+        sphere.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 24000'); // Day/night
+      }
+      planetEntity.appendChild(sphere);
+
+      if (planet.name === 'Saturn') {
+        const rings = document.createElement('a-torus');
+        rings.setAttribute('radius', planet.radius * 1.5);
+        rings.setAttribute('radiusTubular', '0.01');
+        rings.setAttribute('arc', '360');
+        rings.setAttribute('material', 'color: #DAA520; side: double');
+        planetEntity.appendChild(rings);
+      }
+
+      solarRoot.appendChild(planetEntity);
+      window.planetEntities.push(planetEntity);
+    });
   }
 
+  // ⚡ CIRCUIT
   if (type === "circuit") {
-    model.innerHTML = `
-      <a-sphere id="bulb" position="0 0 0" radius="0.2" color="gray"></a-sphere>
-    `;
-  }
-}
+    // Vertical wire left
+    const cyl1 = document.createElement('a-cylinder');
+    cyl1.setAttribute('position', '-0.6 0.2 0');
+    cyl1.setAttribute('radius', '0.1');
+    cyl1.setAttribute('height', '1.2');
+    cyl1.setAttribute('material', 'color: #C0C0C0; metalness: 0.7; roughness: 0.3');
+    cyl1.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(cyl1);
 
-function increaseHeartRate() {
+    // Small vertical
+    const cyl2 = document.createElement('a-cylinder');
+    cyl2.setAttribute('position', '-0.4 0.2 0');
+    cyl2.setAttribute('radius', '0.08');
+    cyl2.setAttribute('height', '0.8');
+    cyl2.setAttribute('material', 'color: #C0C0C0; metalness: 0.7; roughness: 0.3');
+    cyl2.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(cyl2);
+
+    // Horizontal bottom
+    const cyl3 = document.createElement('a-cylinder');
+    cyl3.setAttribute('position', '0 -0.2 0');
+    cyl3.setAttribute('radius', '0.08');
+    cyl3.setAttribute('height', '1.6');
+    cyl3.setAttribute('rotation', '0 0 90');
+    cyl3.setAttribute('material', 'color: #C0C0C0; metalness: 0.7; roughness: 0.3');
+    cyl3.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(cyl3);
+
+    // Vertical right
+    const cyl4 = document.createElement('a-cylinder');
+    cyl4.setAttribute('position', '0.6 0 0');
+    cyl4.setAttribute('radius', '0.1');
+    cyl4.setAttribute('height', '1.4');
+    cyl4.setAttribute('material', 'color: #C0C0C0; metalness: 0.7; roughness: 0.3');
+    cyl4.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(cyl4);
+
+    // Horizontal top
+    const cyl5 = document.createElement('a-cylinder');
+    cyl5.setAttribute('position', '0 0.3 0');
+    cyl5.setAttribute('radius', '0.08');
+    cyl5.setAttribute('height', '1.6');
+    cyl5.setAttribute('rotation', '0 0 90');
+    cyl5.setAttribute('material', 'color: #C0C0C0; metalness: 0.7; roughness: 0.3');
+    cyl5.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(cyl5);
+
+    // Battery
+    const box6 = document.createElement('a-box');
+    box6.setAttribute('position', '0 0.25 0');
+    box6.setAttribute('width', '0.5');
+    box6.setAttribute('height', '0.15');
+    box6.setAttribute('depth', '0.15');
+    box6.setAttribute('color', '#orange');
+    box6.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(box6);
+
+    // Bulb
+    const bulb = document.createElement('a-sphere');
+    bulb.setAttribute('id', 'bulb');
+    bulb.setAttribute('position', '0.55 0.25 0');
+    bulb.setAttribute('radius', '0.18');
+    bulb.setAttribute('material', 'color: gray; metalness: 0; roughness: 0.1; transparent: true; opacity: 0.8');
+    bulb.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(bulb);
+
+    // Switch
+    const sw = document.createElement('a-box');
+    sw.setAttribute('id', 'switch');
+    sw.setAttribute('position', '-0.2 -0.25 0');
+    sw.setAttribute('width', '0.35');
+    sw.setAttribute('height', '0.08');
+    sw.setAttribute('depth', '0.1');
+    sw.setAttribute('color', '#ff0000');
+    sw.setAttribute('shadow', 'cast: true; receive: true');
+    model.appendChild(sw);
+
+    const text = document.createElement('a-text');
+    text.setAttribute('value', 'Simple Circuit');
+    text.setAttribute('position', '0 0.8 0');
+    text.setAttribute('align', 'center');
+    text.setAttribute('color', 'white');
+    model.appendChild(text);
+  }
+};
+
+// ❤️ Speed control
+window.increaseHeartRate = function() {
   heartSpeed -= 100;
   if (heartSpeed < 200) heartSpeed = 200;
-}
+  loadModel("heart");
+};
 
-function toggleCircuit() {
+// ⚡ Switch
+window.toggleCircuit = function() {
   circuitOn = !circuitOn;
-  const bulb = document.querySelector("#bulb");
-  if (bulb) {
-    bulb.setAttribute("color", circuitOn ? "yellow" : "gray");
+
+  const sw = document.querySelector("#model #switch");
+
+  updateBulb();
+
+  if (sw) {
+    sw.setAttribute("rotation", circuitOn ? "0 0 20" : "0 0 0");
+  }
+};
+
+// Update bulb based on state
+function updateBulb() {
+  const bulb = document.querySelector("#model #bulb");
+  if (!bulb) return;
+
+  if (circuitOn) {
+    bulb.setAttribute("material", "color: yellow; emissive: yellow; emissiveIntensity: " + brightness + "; metalness: 0; roughness: 0.1; transparent: true; opacity: 0.8");
+  } else {
+    bulb.setAttribute("material", "color: gray; metalness: 0; roughness: 0.1; transparent: true; opacity: 0.8");
   }
 }
 
-</script>
+// Set brightness
+window.setBrightness = function(val) {
+  brightness = val;
+  updateBulb();
+};
 
-</body>
+// Toggle orbits
+window.toggleOrbits = function() {
+  orbiting = !orbiting;
+  window.planetEntities.forEach((entity, index) => {
+    const dur = [1500, 2000, 6000, 8000, 12000, 15000, 20000, 25000][index];
+    if (orbiting) {
+      entity.setAttribute('animation', `property: rotation; to: 0 360 0; loop: true; dur: ${dur}`);
+    } else {
+      entity.removeAttribute('animation');
+    }
+  });
+};
+
+// 🚀 Enter AR
+window.enterAR = function() {
+  const scene = document.querySelector('a-scene');
+  if (scene.enterVR) {
+    scene.enterVR();
+  }
+};
+</script>
+  </body>
 </html>
